@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hack With GDG S3 — NFT Mint</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0f0f23;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      padding: 24px 0;
+      text-align: center;
+      background: linear-gradient(135deg, #4285F4, #EA4335, #FBBC05, #34A853);
+      background-size: 300% 300%;
+      animation: gradientMove 6s ease infinite;
+    }
+
+    @keyframes gradientMove {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      color: #fff;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+    }
+
+    header p {
+      color: rgba(255,255,255,0.85);
+      margin-top: 4px;
+      font-size: 1rem;
+    }
+
+    .container {
+      max-width: 520px;
+      width: 90%;
+      margin: 40px auto;
+      text-align: center;
+    }
+
+    .card {
+      background: #1a1a2e;
+      border: 2px solid #333;
+      border-radius: 16px;
+      padding: 32px 24px;
+      margin-bottom: 24px;
+      transition: border-color 0.3s;
+    }
+
+    .card:hover { border-color: #4285F4; }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin: 16px 0 24px;
+    }
+
+    .stat-box {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 16px 24px;
+      min-width: 120px;
+    }
+
+    .stat-box .label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .stat-box .value { font-size: 2rem; font-weight: bold; color: #FBBC05; margin-top: 4px; }
+
+    #connectBtn, #mintBtn {
+      width: 100%;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    #connectBtn {
+      background: linear-gradient(135deg, #4285F4, #34A853);
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    #mintBtn {
+      background: linear-gradient(135deg, #EA4335, #FBBC05);
+      color: #fff;
+    }
+
+    #connectBtn:hover, #mintBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(66,133,244,0.3);
+    }
+
+    #connectBtn:disabled, #mintBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .status.success { display: block; background: #1b4332; color: #95d5b2; }
+    .status.error   { display: block; background: #3d0000; color: #ff6b6b; }
+    .status.info    { display: block; background: #16213e; color: #74b9ff; }
+
+    .nft-preview {
+      margin-top: 20px;
+      border-radius: 12px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .nft-preview img {
+      width: 100%;
+      border-radius: 12px;
+    }
+
+    .address-badge {
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-bottom: 16px;
+      word-break: break-all;
+    }
+
+    a { color: #74b9ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    footer {
+      margin-top: auto;
+      padding: 20px;
+      font-size: 0.8rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🚀 Hack With GDG S3</h1>
+    <p>Mint your on-chain NFT on Shardeum Testnet</p>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <div id="walletInfo" class="address-badge">Not connected</div>
+
+      <div class="stats">
+        <div class="stat-box">
+          <div class="label">Total Minted</div>
+          <div class="value" id="totalMinted">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Your NFTs</div>
+          <div class="value" id="yourNfts">—</div>
+        </div>
+      </div>
+
+      <button id="connectBtn" onclick="connectWallet()">🔗 Connect Wallet</button>
+      <button id="mintBtn" onclick="mintNFT()" disabled>🎨 Mint NFT</button>
+
+      <div id="status" class="status"></div>
+      <div id="nftPreview" class="nft-preview"></div>
+    </div>
+
+    <p style="font-size:0.85rem; color:#666;">
+      Network: <strong>Shardeum EVM Testnet</strong> (Chain ID: 8119)<br/>
+      <a href="https://explorer-mezame.shardeum.org" target="_blank">Block Explorer ↗</a>
+    </p>
+  </div>
+
+  <footer>Powered by Shardeum &bull; Built for GDG S3</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
