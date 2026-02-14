@@ -1,0 +1,5 @@
+{
+  "buildCommand": "echo 'No build needed'",
+  "outputDirectory": "frontend",
+  "devCommand": "cd frontend && npx serve -l 3000"
+}
